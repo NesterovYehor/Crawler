@@ -1,16 +1,15 @@
 package parser
 
 import (
+	"fmt"
+	"io"
 	"net/url"
-	"strings"
 
 	"golang.org/x/net/html"
 )
 
-func GetURLsFromHTML(htmlBody string, baseURL *url.URL) ([]string, error) {
-	reader := strings.NewReader(htmlBody)
-
-	node, err := html.Parse(reader)
+func GetURLsFromHTML(htmlBody io.Reader, baseURL *url.URL) ([]string, error) {
+	node, err := html.Parse(htmlBody)
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +26,14 @@ func GetURLsFromHTML(htmlBody string, baseURL *url.URL) ([]string, error) {
 			for _, attr := range node.Attr {
 				if attr.Key == "href" {
 					parsedURL, err := url.Parse(attr.Val)
-					if err == nil {
-						resolvedURL := baseURL.ResolveReference(parsedURL)
-						urls = append(urls, resolvedURL.String())
+					if err != nil {
+                        fmt.Println(err)
+                        continue
 					}
+                    resolvedURL := baseURL.ResolveReference(parsedURL)
+                    if resolvedURL.Host == baseURL.Host {
+                        urls = append(urls, resolvedURL.Path)
+                    }
 					break
 				}
 			}
