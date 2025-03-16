@@ -2,6 +2,7 @@ package tests
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/NesterovYehor/Crawler/internal/parser"
@@ -72,7 +73,8 @@ func TestGetURLsFromHTML(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			url, err := url.Parse(tc.baseURL)
 			assert.NoError(t, err)
-			actual, err := parser.GetURLsFromHTML(tc.inputBody, url)
+			reader := strings.NewReader
+			actual, err := parser.GetURLsFromHTML(reader(tc.inputBody), url)
 			assert.NoError(t, err)
 			assert.ElementsMatch(t, tc.expected, actual)
 		})
