@@ -1,31 +1,54 @@
 package config
 
 import (
-	"net/url"
-	"sync"
+	"errors"
+
+	"github.com/NesterovYehor/Crawler/internal/queue"
+	"github.com/NesterovYehor/Crawler/internal/storage"
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Pages              map[string]int
-	BaseURL            *url.URL
-	Mu                 *sync.Mutex
-	ConcurrencyControl chan struct{}
-	MaxPages           int
-	Wg                 *sync.WaitGroup
+	Queue          *queue.Queue
+	Cache          *storage.Cache
+	MaxConcurrency int
 }
 
-func NewConfig(rawBaseURL string, concurrencyLimit, maxPages int) (*Config, error) {
-	baseURL, err := url.Parse(rawBaseURL)
+func NewConfig() *Config {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		return nil, err
+		if errors.Is(err, viper.ConfigFileNotFoundError{}) {
+			setDefault()
+		} else {
+			panic(err)
+		}
+	}
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: viper.GetString("redis_addr"),
+	})
+
+	queue, err := queue.NewQueue(redisClient, viper.GetString("stream_name"))
+	if err != nil {
+		panic(err)
+	}
+	cache := storage.NewCache(redisClient)
+
+	cfg := &Config{
+		Queue:          queue,
+		Cache:          cache,
+		MaxConcurrency: viper.GetInt("max_concurrency"),
 	}
 
-	return &Config{
-		Pages:              make(map[string]int),
-		BaseURL:            baseURL,
-		Mu:                 &sync.Mutex{},
-		ConcurrencyControl: make(chan struct{}, concurrencyLimit),
-		MaxPages:           maxPages,
-		Wg:                 &sync.WaitGroup{},
-	}, nil
+	return cfg
+}
+
+func setDefault() {
+	viper.SetDefault("max_concurrency", 5)
+	viper.SetDefault("stream_name", "domains")
+	viper.SetDefault("redis_addr", "localhost:6379") // Should be a string
 }

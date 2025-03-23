@@ -5,10 +5,19 @@ import (
 	"io"
 	"net/url"
 
+	"github.com/NesterovYehor/Crawler/internal/utils"
 	"golang.org/x/net/html"
 )
 
-func GetURLsFromHTML(htmlBody io.Reader, baseURL *url.URL) ([]string, error) {
+func GetURLsFromHTML(htmlBody io.Reader, rawUrl string) ([]string, error) {
+	baseRaw, err := utils.NormalizeURL(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	base, err := url.Parse(baseRaw)
+	if err != nil {
+		return nil, err
+	}
 	node, err := html.Parse(htmlBody)
 	if err != nil {
 		return nil, err
@@ -27,13 +36,11 @@ func GetURLsFromHTML(htmlBody io.Reader, baseURL *url.URL) ([]string, error) {
 				if attr.Key == "href" {
 					parsedURL, err := url.Parse(attr.Val)
 					if err != nil {
-                        fmt.Println(err)
-                        continue
+						fmt.Println(err)
+						continue
 					}
-                    resolvedURL := baseURL.ResolveReference(parsedURL)
-                    if resolvedURL.Host == baseURL.Host {
-                        urls = append(urls, resolvedURL.Path)
-                    }
+					resolvedURL := base.ResolveReference(parsedURL)
+					urls = append(urls, resolvedURL.Path)
 					break
 				}
 			}
