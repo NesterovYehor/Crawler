@@ -1,7 +1,7 @@
 # High-Performance Web Crawler in Go
 
-| CI Status                                                                                                                | Go Version                                                                                               | License                                                                                                   |
-| :----------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
+| Go Version                                                                                               | License                                                                                                   |
+|  :------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: |
 | ![Go 1.23+](https://img.shields.io/badge/Go-1.23%2B-00ADD8?style=flat-square&logo=go) | ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square) |
 
 A concurrent, high-performance web crawler built in Go, designed for scalability and resilience. This project features a sophisticated architecture using Redis for caching and queuing, Cassandra for metadata storage, and Prometheus for real-time performance monitoring.
