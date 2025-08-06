@@ -36,15 +36,7 @@ jobs:
       # This is the crucial step that ensures go.mod and go.sum are correct
       # before any other module operations.
       - name: Tidy dependencies
-        run: go mod tidy
-
-      # Step 5: Download Go module dependencies.
-      - name: Download dependencies
-        run: go mod download
-
-      # Step 6: Vendor dependencies.
-      - name: Vendor dependencies
-        run: go mod vendor
+        run: go get .
 
       # Step 7: Run the tests.
       - name: Run tests
