@@ -1,3 +1,7 @@
-https://www.wagslane.dev/
-https://frontendmasters.com/dashboard/
-https://redis.io/
+https://frontendmasters.com/
+https://leetcode.com/
+https://developer.mozilla.org/
+https://books.toscrape.com/
+https://en.wikipedia.org/wiki/Main_Page
+https://news.ycombinator.com/
+https://www.gutenberg.org/

@@ -5,51 +5,55 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/NesterovYehor/Crawler/internal/utils"
 	"golang.org/x/net/html"
 )
 
-func GetURLsFromHTML(htmlBody io.Reader, rawUrl string) ([]string, error) {
-	baseRaw, err := utils.NormalizeURL(rawUrl)
-	if err != nil {
-		return nil, err
-	}
-	base, err := url.Parse(baseRaw)
-	if err != nil {
-		return nil, err
-	}
+func GetURLsFromHTML(htmlBody io.Reader, base *url.URL) ([]string, error) {
 	node, err := html.Parse(htmlBody)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse HTML: %w", err)
 	}
 
-	var urls []string
+	urls := make([]string, 0)
 
-	var dfs func(node *html.Node)
-	dfs = func(node *html.Node) {
-		if node == nil {
+	var extractLinks func(*html.Node)
+	extractLinks = func(n *html.Node) {
+		if n == nil {
 			return
 		}
 
-		if node.Type == html.ElementNode && node.Data == "a" {
-			for _, attr := range node.Attr {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, attr := range n.Attr {
 				if attr.Key == "href" {
 					parsedURL, err := url.Parse(attr.Val)
 					if err != nil {
-						fmt.Println(err)
+						fmt.Printf("Skipping invalid URL: %v\n", err)
 						continue
 					}
-					resolvedURL := base.ResolveReference(parsedURL)
-					urls = append(urls, resolvedURL.Path)
+
+					if !parsedURL.IsAbs() {
+						parsedURL = base.ResolveReference(parsedURL)
+					}
+
+					if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+						continue
+					}
+
+					if parsedURL.Host == "" {
+						continue
+					}
+
+					urls = append(urls, parsedURL.String())
 					break
 				}
 			}
 		}
 
-		dfs(node.FirstChild)
-		dfs(node.NextSibling)
+		extractLinks(n.FirstChild)
+		extractLinks(n.NextSibling)
 	}
 
-	dfs(node)
+	extractLinks(node)
+
 	return urls, nil
 }

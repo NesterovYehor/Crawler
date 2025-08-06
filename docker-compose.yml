@@ -1,0 +1,67 @@
+services:
+  redis:
+    image: redis/redis-stack:7.2.0-v10
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: cassandra:latest
+    container_name: my-db
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: MyTestCluster
+      CASSANDRA_DC: DC1
+      CASSANDRA_RACK: RACK1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 128
+      CASSANDRA_FORCE_IPV4_RESOLVE: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  crawler:
+    build: .
+    container_name: my-web-crawler
+    ports:
+      - "2112:2112"
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    command: ["/bin/bash", "-c", " exec /app/crawler_binary"]
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CASSANDRA_HOST: db
+      CASSANDRA_PORT: 9042
+      CONFIG_FILE_PATH: /app/config.yaml # Your Go app should read this env var to load the config
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: my-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # You'll need to create this file
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: my-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
