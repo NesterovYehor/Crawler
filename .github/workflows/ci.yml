@@ -37,10 +37,14 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      # Step 5: Run the tests.
+      # Step 5: Vendor dependencies.
+      # This is the crucial step that creates the vendor/ directory with all dependencies.
+      - name: Vendor dependencies
+        run: go mod vendor
+
+      # Step 6: Run the tests.
       # The -v flag provides verbose output.
       # The -race flag enables the race detector to find concurrency issues.
       # The -timeout flag prevents tests from running indefinitely.
       - name: Run tests
         run: go test -v -race -timeout 30m ./...
-
