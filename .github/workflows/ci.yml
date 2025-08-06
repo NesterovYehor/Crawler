@@ -10,6 +10,7 @@ jobs:
     # The name that will be displayed on GitHub.
     name: Run Tests
     # Use the latest version of Ubuntu as the runner environment.
+    # The default GitHub runners have Docker installed and running.
     runs-on: ubuntu-latest
 
     steps:
@@ -36,8 +37,16 @@ jobs:
       # This is the crucial step that ensures go.mod and go.sum are correct
       # before any other module operations.
       - name: Tidy dependencies
-        run: go get .
+        run: go mod tidy
 
-      # Step 7: Run the tests.
+      # Step 5: Vendor dependencies.
+      # This creates the vendor/ directory with all dependencies.
+      - name: Vendor dependencies
+        run: go mod vendor
+
+      # Step 6: Run the tests.
+      # The -v flag provides verbose output.
+      # The -race flag enables the race detector to find concurrency issues.
+      # The -timeout flag prevents tests from running indefinitely.
       - name: Run tests
         run: go test -v -race -timeout 30m ./...
