@@ -1,0 +1,51 @@
+# This is the name of the GitHub Actions workflow.
+name: Go CI
+
+# This workflow runs on every push and pull request to any branch.
+on: [push, pull_request]
+
+jobs:
+  # Define a single job called "test".
+  test:
+    # The name that will be displayed on GitHub.
+    name: Run Tests
+    # Use the latest version of Ubuntu as the runner environment.
+    # The default GitHub runners have Docker installed and running.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out your repository's code.
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Go programming language environment.
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23' # Specify your Go version
+
+      # Step 3: Cache Go modules to speed up future builds.
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # Step 4: Tidy Go modules.
+      # This is the crucial step that ensures go.mod and go.sum are correct.
+      - name: Tidy dependencies
+        run: go mod tidy
+
+      # Step 5: Vendor dependencies.
+      # This creates the vendor/ directory with all dependencies.
+      - name: Vendor dependencies
+        run: go mod vendor
+
+      # Step 6: Run the tests.
+      # The -v flag provides verbose output.
+      # The -race flag enables the race detector to find concurrency issues.
+      # The -timeout flag prevents tests from running indefinitely.
+      - name: Run tests
+        run: go test -v -race -timeout 30m ./...

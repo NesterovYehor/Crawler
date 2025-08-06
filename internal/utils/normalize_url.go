@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 )
@@ -11,11 +12,22 @@ func NormalizeURL(rawURL string) (string, error) {
 		return "", err
 	}
 
-	// Build the normalized URL
 	normalized := parsedURL.Host + parsedURL.Path
 
-	// Remove trailing slash if it's not the root "/"
 	normalized = strings.TrimSuffix(normalized, "/")
 
 	return normalized, nil
+}
+
+func GetDomain(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+        return "", fmt.Errorf("FAILED TO PARSE URL:%v ERR:%v", rawURL, err)
+	}
+
+	domain := parsedURL.Host
+
+	domain = strings.TrimSuffix(domain, "/")
+
+	return domain, nil
 }

@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'crawler'
+    static_configs:
+      - targets: ['crawler:2112'] # 'crawler' is the service name from docker-compose

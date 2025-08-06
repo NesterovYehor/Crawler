@@ -1,9 +1,11 @@
-package parser
+package parser_test
 
 import (
+	"net/url"
 	"strings"
 	"testing"
 
+	"github.com/NesterovYehor/Crawler/internal/parser"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -70,7 +72,9 @@ func TestGetURLsFromHTML(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			reader := strings.NewReader
-			actual, err := GetURLsFromHTML(reader(tc.inputBody), tc.baseURL)
+            base, err := url.Parse(tc.baseURL)
+            assert.NoError(t, err)
+			actual, err := parser.GetURLsFromHTML(reader(tc.inputBody), base)
 			assert.NoError(t, err)
 			assert.ElementsMatch(t, tc.expected, actual)
 		})

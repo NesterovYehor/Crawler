@@ -1,0 +1,35 @@
+# Configuration for application
+
+# Database settings
+db:
+  addr: "db:9042"
+  keyspace: "metadata" 
+
+# Cache settings
+cache:
+  addr: "redis:6379"
+
+# Scripts paths
+scripts_path:
+  access: "/scripts/politeness_gate.lua" 
+  update: "/scripts/update_token_limit.lua" 
+
+# Worker pool configuration
+workers:
+  total: 50 
+  upload:
+    count: 5 
+  fetch:
+    high_priority_count: 20 
+    med_priority_count: 15
+    low_priority_count: 10
+
+# Queue settings
+queue:
+  stream: "tasks"
+  group_name: "workers" 
+  consumer_id: "tasks" 
+
+# Metrics configuration
+metrics:
+  port: ":2112"
